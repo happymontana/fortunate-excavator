@@ -91,14 +91,14 @@ def main():
     for rowid, hid, pc in handles:
         person_of[rowid] = f"pc:{pc}" if pc else f"id:{(hid or '').strip().lower()}"
     kinds = Counter("email" if "@" in (h or "") else "phone/other" for _, h, _ in handles)
-    per_person_handles = Counter(person_of.values())
     s5 = {
         "person_centric_id column present": "yes" if pcid else "no",
         "handles with person_centric_id": sum(1 for *_, pc in handles if pc),
         "handles that are email": kinds["email"],
         "handles that are phone/other": kinds["phone/other"],
-        "people with 2+ handles (by person_centric_id)": sum(1 for n in per_person_handles.values() if n > 1),
-        "distinct handle strings that differ only by case/space":
+        "people with 2+ handles (by person_centric_id)":
+            len({pc for *_, pc in handles if pc and sum(1 for *_, q in handles if q == pc) > 1}),
+        "duplicate handle rows (same identifier, e.g. SMS + iMessage)":
             len(handles) - len({(h or "").strip().lower() for _, h, _ in handles}),
     }
 
