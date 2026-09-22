@@ -113,6 +113,9 @@ knows how the numbers were produced.
 
 ## 5. The archive format
 
+> **Applied 2026-09-22** in `archive-format.md`: renamed, fingerprints stripped, canonical here.
+> JSON Schema and fixtures remain, and ship with the writer.
+
 **Rename it.** It is currently the "Fortunate Archive Format" in `fortunate-archive/`, produced by an
 "Export for Fortunate" button. A GPL tool whose central artefact is branded after the proprietary
 product that consumes it hands the derivative-work argument its best sentence. Name it after the open
@@ -138,6 +141,9 @@ Ship a JSON Schema and public fixtures so "any application can consume it" is de
 ## 6. Privacy — one invariant, then rules
 
 > **NO NETWORK CODE. EVER.** Not a policy — a testable invariant, enforced in CI.
+
+*Enforced since 2026-09-22 by `scripts/check-invariants.sh` (lockfile crate denylist + socket-API
+scan), run by `.github/workflows/invariants.yml`.*
 
 Every other exclusion in spec §27 needs a socket: no telemetry, no cloud scoring, no account, no
 automated outreach. One invariant guards the whole list, and it is the one to defend hardest, because
@@ -213,7 +219,8 @@ is partial — the same honesty the coverage manifest applies to the archive.
 "Strongly consider contributing upstream" collapses the first time a deadline meets a fix. Make it
 enforceable:
 
-- **CI asserts a zero-diff in `imessage-database/` and `imessage-exporter/`.** This is true today —
+- **CI asserts a zero-diff in `imessage-database/` and `imessage-exporter/`** *(in place since
+  2026-09-22 — `scripts/check-invariants.sh`)*. This is true today —
   verified, 0 files changed — so the invariant starts green. Our work lives in new crates.
 - Parser fixes go upstream first, as pull requests. Ours is the analysis layer.
 - A recorded monthly upstream sync, logged in `NOTICE.md`.

@@ -49,6 +49,22 @@ rewrite them, and do not add a competing copyright line that displaces them.
 Newest first. Each entry: date, what changed, and whether it touched upstream
 code or only added files.
 
+### 2026-09-22 — spike step 1, CI invariants, archive renamed
+
+**No upstream source file was modified.** `imessage-database/` and
+`imessage-exporter/` remain byte-identical to upstream — now checked in CI.
+
+| File | Change | Upstream file? |
+|---|---|---|
+| `docs/build-guide.md` | Added (previous commit, recorded here) — the plan of record. | new |
+| `scripts/check-invariants.sh` | Added — asserts upstream crates unmodified, `LICENSE` unmodified, and no networking crates or socket APIs anywhere. | new |
+| `scripts/ci-local.sh` | Added — runs the full CI locally with upstream's pinned `TZ`. | new |
+| `.github/workflows/invariants.yml` | Added — runs the invariants on push and pull request. Upstream's `test.yml` is untouched. | new |
+| `docs/archive-format.md` | **Modified** (ours) — renamed to the *Excavator Archive*, written under `excavation/`; host fingerprints (`host_os`, `output_dir`, source paths) removed; `person-centric-id` merge tier and `suggested_merges` added; this repository declared the canonical spec. | new (ours) |
+| `docs/analysis-plan.md` | **Modified** (ours) — reconciled with the build guide: `person_centric_id` tier, `same-thread` demoted to suggestion, reconnection requires sustained contact, "Export archive". | new (ours) |
+| `docs/spike-plan.md` | **Modified** (ours) — step 1 results recorded; step 7 pre-checks noted. | new (ours) |
+| `README.md` | **Modified** — the Fortunate section's references to the archive renamed. Upstream's content untouched. | **upstream file, modified** |
+
 ### 2026-09-22 — initial fork scaffold (documentation only)
 
 **No upstream source file was modified. No upstream file was renamed, moved, or

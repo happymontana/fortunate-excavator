@@ -65,13 +65,19 @@ people a "who have I lost touch with?" report most wants to surface.
 2. **Normalize.** Phone numbers to E.164 where a region can be inferred; emails
    lowercased. **Keep the raw value** (`handles[].raw` in the archive) so a
    normalization error is auditable instead of invisible.
-3. **Merge handles into people.** In descending order of confidence:
+3. **Merge handles into people.** In descending order of confidence
+   (reconciled with [`build-guide.md`](build-guide.md) §3, which wins):
+   - `person-centric-id` — handles sharing Apple's own
+     `handle.person_centric_id`. Apple's judgement, already parsed upstream
+     (`Handle::person_centric_id`); the highest-confidence tier.
    - `exact-handle` — the same normalized handle. Certain.
    - `contact-card` — the Contacts database links them. Strong, and requires
      Contacts access the user must grant separately; without it this tier
      disappears and merge quality drops materially.
    - `same-thread` — handles that behave as one participant across threads.
-     **Weak, and the source of most wrong merges.**
+     **Weak, and the source of most wrong merges — so it is never a merge.** It
+     is recorded as a *suggestion* (`suggested_merges` in the archive) for the
+     user to confirm or reject.
 4. **Record the confidence** on the person, and let the report show a merge as
    provisional rather than asserting it.
 
@@ -104,7 +110,7 @@ metadata alone — no message bodies — except the one that is explicitly marke
 | Last contact, per person | latest timestamp | A relationship that moved to Signal, WhatsApp or real life reads as dormant. **The tool cannot see this and must not imply otherwise.** |
 | Years connected | span between the two | Same bounding problem at both ends. |
 | Message / conversation counts over time | counts bucketed by month and year | Volume is not closeness. Group chats inflate; a single close friend can be quiet. |
-| Long gaps and reconnections | ordered timestamps per person, gap threshold | Threshold is a judgement call, not a fact. Default: a gap ≥ 12 months, closed by ≥ 1 message. Make it configurable and *show* the threshold in the report. |
+| Long gaps and reconnections | ordered timestamps per person, gap threshold | Threshold is a judgement call, not a fact. Default: a gap ≥ 12 months. A *reconnection* is that gap closed by **sustained** contact — ≥ N messages within M days — never one stray message ([`build-guide.md`](build-guide.md) §4). **N and M are an open decision for the operator**, taken before the detector is written and recorded in the manifest. Make both configurable and *show* them in the report. |
 | Dormant relationships | last contact + dormancy threshold | Default 24 months. Same caveat: a person may simply be reachable elsewhere. |
 | Media exchanged | attachment counts per person | Missing attachment files are counted from the database rows, not the disk; the archive's `file_present` distinguishes them. |
 | Relationship timeline | all of the above, per person | Only as good as the identity merge behind it. |
@@ -145,10 +151,10 @@ Sections, in order:
    than only in this file. A user reading "you haven't spoken to Sarah in three
    years" deserves to see, on the same page, that the tool cannot see WhatsApp.
 
-## 5 · Export for Fortunate
+## 5 · Export archive
 
-One optional step: write the [Fortunate Archive Format](archive-format.md) to
-the chosen `--output` directory. It is a button beside the others.
+One optional step: write the [Excavator Archive](archive-format.md) to the
+chosen `--output` directory. It is a button beside the others.
 
 It is worth being exact about what it is and is not:
 
@@ -173,5 +179,5 @@ Nothing starts until the spike passes.
 4. **Archive writer** — `manifest.json` coverage counts first, because coverage
    is what makes everything else trustworthy.
 5. **HTML report.**
-6. **Export for Fortunate** — last, because it is the least important of these
+6. **Export archive** — last, because it is the least important of these
    and the tool must be worth running without it.

@@ -1,4 +1,4 @@
-# The Fortunate Archive Format
+# The Excavator Archive
 
 **Status: SPECIFICATION — nothing writes this yet.** Written 2026-09-22.
 `schema_version` is `1` and it is *provisional*: it may change without
@@ -7,7 +7,13 @@ has run against a real archive. Real output has a way of invalidating a format
 designed in the abstract, and this one has not met any.
 
 This document specifies the structured output of Fortunate Excavator: what it
-writes to disk, where, and what each field means.
+writes to disk, where, and what each field means. The format is named after the
+open tool that produces it, not after any program that consumes it; the action
+that writes it is **"Export archive"**.
+
+**This repository holds the canonical specification.** Any consumer — including
+Fortunate's separate, private importer — reads this format; none co-owns it. See
+§9.
 
 > **This is a neutral interchange format, not a Fortunate payload.** It is
 > documented here, in the GPL repository, because *this tool's* users need it —
@@ -22,6 +28,7 @@ writes to disk, where, and what each field means.
 
 ```text
 <output-dir>/                  # chosen with --output; there is NO default
+  excavation/                  # the archive itself; delete this to delete it
     manifest.json              # schema version, source, run date, coverage counts
     people.json                # normalized identities
     conversations.json         # spans, participants, counts
@@ -53,14 +60,11 @@ The file a consumer reads **first**, and the only one it may assume exists.
   },
   "source": {
     "kind": "chat.db",
-    "path": "/Users/<user>/Library/Messages/chat.db",
-    "host_os": "macOS 14.8.9 (23J631)",
     "db_modified_at": "2026-09-21T23:11:02-07:00"
   },
   "run": {
     "started_at": "2026-09-22T09:04:11-07:00",
-    "completed_at": "2026-09-22T09:31:47-07:00",
-    "output_dir": "/Users/<user>/FortunateExcavation"
+    "completed_at": "2026-09-22T09:31:47-07:00"
   },
   "coverage": {
     "messages_in_source": 1483221,
@@ -77,6 +81,16 @@ The file a consumer reads **first**, and the only one it may assume exists.
   "warnings": []
 }
 ```
+
+### No host fingerprints
+
+The archive is the one artefact designed to leave the tool, so it carries **no
+information about the machine that produced it**: no username, no hostname, no
+OS build, no absolute paths — not the source database's, not the output
+directory's, not any attachment's. `source.kind` records *what type* of source
+was read (`chat.db`, `ios-backup`), never where it lives. A writer that adds a
+field of this kind is defective. The run's destination is printed to the
+terminal before writing (§7); it is not recorded in the output.
 
 ### `coverage` is the point of the manifest
 
@@ -119,6 +133,9 @@ extraction.
       "merged_from": ["+14155550123", "sarah@example.com"],
       "merge_confidence": "contact-card"
     }
+  ],
+  "suggested_merges": [
+    { "person_ids": ["p_7f3a91c2", "p_02c4d9e1"], "evidence": "same-thread" }
   ]
 }
 ```
@@ -133,8 +150,15 @@ extraction.
   `raw` preserves what the database actually held so that a normalization
   mistake is auditable rather than invisible.
 - Merging several handles into one person is an **inference**, and
-  `merge_confidence` says how it was reached (`contact-card`, `same-thread`,
-  `exact-handle`, …). A consumer may present merges as provisional. See
+  `merge_confidence` says how it was reached. The values, most to least
+  confident: `person-centric-id` (Apple's own `handle.person_centric_id`
+  grouping), `exact-handle` (the same normalized identifier), `contact-card`
+  (linked by a Contacts card), and `single` (one handle, nothing merged).
+  **Nothing weaker than `contact-card` is ever merged.** Weaker evidence —
+  handles that behave like one participant across threads, for instance — is a
+  *suggestion* the user confirms or rejects, recorded in `suggested_merges`
+  below, never folded into a person silently. A consumer may present merges as
+  provisional. See
   [`analysis-plan.md`](analysis-plan.md) § *Identity resolution* for the
   known-hard cases; the honest position is that some merges will be wrong.
 
@@ -219,7 +243,7 @@ duplicate gigabytes of photographs.
       "mime_type": "image/jpeg",
       "byte_size": 1840221,
       "created_at": "2019-04-07T18:22:04-07:00",
-      "source_path": "~/Library/Messages/Attachments/…/IMG_0421.JPEG",
+      "file_name": "IMG_0421.JPEG",
       "file_present": true,
       "copied_to": null
     }
@@ -230,13 +254,15 @@ duplicate gigabytes of photographs.
 That index lives at `media/attachments.json`. When a run is asked to copy files,
 they land under `media/files/` and `copied_to` is a path relative to the archive
 root. `file_present: false` means the database references a file the disk no
-longer has — common, expected, and reported rather than hidden.
+longer has — common, expected, and reported rather than hidden. `file_name` is
+the base name only; the source path is deliberately not recorded (§2, *No host
+fingerprints*).
 
 ## 7 · Where the archive goes, and why there is no default
 
 **There is no default output directory. `--output` is required.**
 
-`~/FortunateExcavation` is the *suggested* location shown in documentation and
+`~/Excavation` is the *suggested* location shown in documentation and
 in the tool's own help text. It is a suggestion the user must actually type or
 confirm, and it is deliberately **not** a silent fallback.
 
@@ -291,13 +317,13 @@ consumer reading one file in isolation can still tell what it is holding.
 - A consumer that finds a `schema_version` it does not know must refuse the
   archive and say so, not guess.
 
-> ⚠ **This spec is co-owned.** The importing half lives in the private
-> `fortunate-messages` project. **A format owned in two repositories, one public
-> and one private, will drift** — and drift here is silent: the writer adds a
-> field, the importer assumes a field, and nothing fails until real data does.
-> Whether this document or the importer's copy is canonical is **not settled**,
-> and it is not this repository's to settle alone. Until it is, treat any
-> difference between the two as a bug to be raised, not reconciled locally, and
-> bear in mind that **the copy in this repository is the one this tool's
-> independent users can actually see** — a private divergence they cannot read
-> is a defect in the format's claim to be neutral.
+**This document is canonical.** Consumers — Fortunate's private importer among
+them — consume the format; they do not co-own it. Two copies of one contract
+drift silently: the writer adds a field, the importer assumes one, and nothing
+fails until real data does. So there is one copy, here, where this tool's
+independent users can read it. A consumer that needs something the format lacks
+raises it against this repository; it does not extend a private copy.
+
+A JSON Schema and public, synthetic fixtures will ship beside this document when
+the writer does, so that "any application can consume it" is demonstrable rather
+than claimed.

@@ -1,6 +1,7 @@
 # Spike plan — prove upstream parses a real archive before writing a line of our own
 
-**Status: NOT STARTED** (2026-09-22). **This gate blocks the build.**
+**Status: IN PROGRESS** — step 1 passed 2026-09-22; steps 2–6 need the operator.
+**This gate blocks the build.**
 
 No Fortunate code — no identity resolution, no metrics, no archive writer, no
 report — may be written until the steps below have **recorded results** in this
@@ -58,24 +59,36 @@ plan is built to catch.
 
 ---
 
-## Step 1 — Build upstream, unmodified · ⬜ NOT STARTED
+## Step 1 — Build upstream, unmodified · ✅ PASSED 2026-09-22
 
-- [ ] Confirm the working tree is upstream-clean apart from documentation:
+- [x] Confirm the working tree is upstream-clean apart from documentation:
       `git diff --stat upstream/develop -- ':!*.md'` should be empty.
-- [ ] `cargo build --release` in the workspace root.
-- [ ] Record the toolchain: `rustc --version`, `cargo --version`, whether Xcode
+- [x] `cargo build --release` in the workspace root.
+- [x] Record the toolchain: `rustc --version`, `cargo --version`, whether Xcode
       Command Line Tools were needed, and total build time.
-- [ ] Run `./target/release/imessage-exporter --help`.
+- [x] Run `./target/release/imessage-exporter --help`.
 
 **Exit criterion:** the binary builds from this fork's source and prints help.
 Not "it builds with a few warnings we ignored" — record the warnings.
 
 ```
-commit built:
-rustc / cargo:
-build time:
-warnings of note:
-binary runs:            yes / no
+commit built:           53cdcd7a (docs-only on top of upstream 0d444ab3); diff vs
+                        upstream/develop excluding *.md: empty
+host:                   macOS 14.8.9 (23J631), Apple Silicon (aarch64-apple-darwin)
+rustc / cargo:          rustc 1.98.0 (88d9e12ae 2026-08-18) / cargo 1.98.0 (797e8a9bc 2026-08-05)
+                        via Homebrew rustup (keg-only: /opt/homebrew/opt/rustup/bin
+                        must be on PATH); Xcode already installed, nothing extra needed
+build time:             56 s clean `cargo build --release` (LTO, 1 codegen unit)
+warnings of note:       none — 0 compiler warnings; `cargo clippy --workspace
+                        --all-targets -D warnings` clean; `cargo doc -D warnings` clean
+binary runs:            yes — `--help` prints, exit 0; binary 3.6 MB
+tests:                  1,035 pass (467 database, 526 exporter, 42 doctests) — BUT
+                        only with TZ=America/Los_Angeles, as upstream CI pins. In
+                        this machine's zone (CDT) ~60 exporter tests fail on rendered
+                        timestamps (7:29 PM vs 5:29 PM). A test-harness assumption,
+                        not a parser defect; scripts/ci-local.sh pins TZ.
+                        Worth reporting upstream as an issue.
+recorded by / date:     Claude (agent), 2026-09-22 — no real archive touched
 ```
 
 ## Step 2 — Baseline the source of truth · ⬜ NOT STARTED
@@ -240,6 +253,18 @@ plan in [`analysis-plan.md`](analysis-plan.md) §1 does not fit.
 
 **Exit criterion:** either the additive plan is confirmed against real APIs, or
 it is revised here and in `analysis-plan.md` **before** any code is written.
+
+> **Pre-checked 2026-09-22, not signed off.** These parts need no archive, so
+> they were looked at early; the step still completes only after 1–6.
+> - Types: `tables::handle::Handle` (incl. `person_centric_id: Option<String>`),
+>   `tables::chat::Chat`, `tables::chat_handle::ChatToHandle`,
+>   `tables::messages::Message`, `tables::attachment::Attachment`, and
+>   `tables::table::get_connection` (opens `SQLITE_OPEN_READ_ONLY`) — all `pub`.
+> - Upstream diff required: **zero**, per `build-guide.md` §9 — the analysis
+>   lives in new crates, which supersedes the "one CLI subcommand" idea in
+>   `analysis-plan.md` §1. Enforced by `scripts/check-invariants.sh` in CI.
+> - Upstream merge: `git fetch upstream` → `upstream/develop` is still
+>   `0d444ab3`, the fork point; `git merge-tree` clean. Nothing to sync yet.
 
 ```
 types the analysis crate will consume:
