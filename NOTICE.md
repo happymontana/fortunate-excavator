@@ -58,6 +58,7 @@ code or only added files.
 |---|---|---|
 | `docs/build-guide.md` | Added (previous commit, recorded here) — the plan of record. | new |
 | `scripts/check-invariants.sh` | Added — asserts upstream crates unmodified, `LICENSE` unmodified, and no networking crates or socket APIs anywhere. | new |
+| `scripts/spike-counts.py` | Added — throwaway spike script (steps 2, 5, 6): counts-only output from a *copy* of `chat.db`, plus an optional local counts-only HTML page. Deleted when the engine exists. | new |
 | `scripts/ci-local.sh` | Added — runs the full CI locally with upstream's pinned `TZ`. | new |
 | `.github/workflows/invariants.yml` | Added — runs the invariants on push and pull request. Upstream's `test.yml` is untouched. | new |
 | `docs/archive-format.md` | **Modified** (ours) — renamed to the *Excavator Archive*, written under `excavation/`; host fingerprints (`host_os`, `output_dir`, source paths) removed; `person-centric-id` merge tier and `suggested_merges` added; this repository declared the canonical spec. | new (ours) |
