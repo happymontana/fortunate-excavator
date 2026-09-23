@@ -1,0 +1,26 @@
+# Fortunate Excavator — repository invariants (see scripts/check-invariants.sh
+# and docs/build-guide.md §6, §9). A new file, beside upstream's test.yml,
+# which is left untouched.
+name: Invariants
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - release
+      - develop
+
+jobs:
+  Invariants:
+    name: Excavator invariants
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: git remote add upstream https://github.com/ReagentX/imessage-exporter.git
+      - run: git fetch --no-tags upstream develop
+      - run: scripts/check-invariants.sh

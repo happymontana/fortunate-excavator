@@ -97,12 +97,12 @@ repository, with no relationship to Fortunate whatsoever.
 - **A standalone local HTML report** presenting all of the above. This is the
   main output: open it in a browser, read it, delete it. No further tooling
   required.
-- **A structured archive** on disk — the [Fortunate Archive
-  Format](docs/archive-format.md): plain JSON, documented, and deliberately
+- **A structured archive** on disk — the [Excavator
+  Archive](docs/archive-format.md): plain JSON, documented, and deliberately
   neutral. Anything can read it.
 
-Fortunate's own desktop app is *one* consumer of that archive, via an optional
-"Export for Fortunate" step. It is one button among these features, it is not
+Fortunate's own desktop app is *one* consumer of that archive. Writing it is an
+optional "Export archive" step; it is one button among these features, it is not
 required, and the format is not shaped around it — see
 [`docs/archive-format.md`](docs/archive-format.md), which is written so that
 someone can build a completely different consumer.
